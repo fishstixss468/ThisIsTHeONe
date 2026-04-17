@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Archery Game</title>
+
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: linear-gradient(#87ceeb, #dff6ff);
+        font-family: Arial;
+    }
+
+    canvas {
+        display: block;
+        cursor: crosshair;
+    }
+
+    /* SCORE */
+    #score {
+        position: absolute;
+        top: 10px;
+        left: 120px;
+        font-size: 20px;
+        font-weight: bold;
+        display: none;
+    }
+
+    /* HOME BUTTON */
+    #homeBtn {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        display: none;
+    }
+
+    /* PAUSE BUTTON */
+    #pauseBtn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        font-size: 14px;
+        cursor: pointer;
+        display: none;
+    }
+
+    /* START SCREEN */
+    #startScreen, #winScreen {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    #winScreen {
+        display: none;
+    }
+
+    /* PAUSE OVERLAY */
+    #pauseScreen {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255,255,255,0.95);
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        display: none;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 15px;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- UI -->
+<button id="homeBtn" onclick="goHome()">Home</button>
+<button id="pauseBtn" onclick="pauseGame()">Pause</button>
+
+<div id="score">Score: 0</div>
+
+<div id="startScreen">
+    <h2>The goal is to hit the bullseye 5 times!</h2>
+    <button onclick="startGame()">Start</button>
+</div>
+
+<div id="winScreen">
+    <h1>You Won!</h1>
+    <button onclick="restartGame()">Play Again</button>
+</div>
+
+<!-- PAUSE SCREEN -->
+<div id="pauseScreen">
+    <h1>Game Paused</h1>
+    <button onclick="resumeGame()">Resume</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let gameStarted = false;
+let gamePaused = false;
+
+let mouseX = canvas.width / 2;
+let mouseY = canvas.height / 2;
+
+let aiming = false;
+let pullPower = 0;
+let arrows = [];
+let score = 0;
+
+const bow = {
+    x: 150,
+    y: canvas.height / 2
+};
+
+const target = {
+    x: canvas.width * 0.75,
+    y: canvas.height * 0.5,
+    radius: 60,
+    dx: 2 + Math.random() * 2,
+    dy: 1.5 + Math.random() * 2
+};
+
+// START
+function startGame() {
+    gameStarted = true;
+
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("score").style.display = "block";
+    document.getElementById("homeBtn").style.display = "block";
+    document.getElementById("pauseBtn").style.display = "block";
+}
+
+// HOME BUTTON
+function goHome() {
+    window.location.href ="fromScratch.html"; // change if needed
+}
+
+// PAUSE
+function pauseGame() {
+    gamePaused = true;
+    document.getElementById("pauseScreen").style.display = "block";
+}
+
+// RESUME
+function resumeGame() {
+    gamePaused = false;
+    document.getElementById("pauseScreen").style.display = "none";
+}
+
+// MOUSE
+canvas.addEventListener("mousedown", () => {
+    if (!gameStarted || gamePaused) return;
+    aiming = true;
+});
+
+canvas.addEventListener("mouseup", () => {
+    if (!gameStarted || gamePaused) return;
+    if (aiming) {
+        shootArrow();
+        aiming = false;
+        pullPower = 0;
+    }
+});
+
+canvas.addEventListener("mousemove", (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+});
+
+// SHOOT
+function shootArrow() {
+    const angle = Math.atan2(mouseY - bow.y, mouseX - bow.x);
+
+    arrows.push({
+        x: bow.x,
+        y: bow.y,
+        vx: Math.cos(angle) * (10 + pullPower * 10),
+        vy: Math.sin(angle) * (10 + pullPower * 10)
+    });
+}
+
+// BOW
+function drawBow() {
+    const angle = Math.atan2(mouseY - bow.y, mouseX - bow.x);
+
+    ctx.save();
+    ctx.translate(bow.x, bow.y);
+    ctx.rotate(angle);
+
+    ctx.beginPath();
+    ctx.arc(0, 0, 100, -Math.PI/2, Math.PI/2);
+    ctx.strokeStyle = "brown";
+    ctx.lineWidth = 5;
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+// TARGET
+function drawTarget() {
+    const colors = ["white", "blue", "yellow", "red"];
+    const radii = [60, 45, 30, 15];
+
+    for (let i = 0; i < colors.length; i++) {
+        ctx.beginPath();
+        ctx.arc(target.x, target.y, radii[i], 0, Math.PI * 2);
+        ctx.fillStyle = colors[i];
+        ctx.fill();
+    }
+}
+
+// MOVE TARGET
+function updateTarget() {
+    target.x += target.dx;
+    target.y += target.dy;
+
+    if (target.x + target.radius > canvas.width || target.x - target.radius < canvas.width * 0.5) {
+        target.dx *= -1;
+    }
+
+    if (target.y + target.radius > canvas.height || target.y - target.radius < 0) {
+        target.dy *= -1;
+    }
+}
+
+// CROSSHAIR
+function drawCrosshair() {
+    ctx.beginPath();
+    ctx.moveTo(mouseX - 8, mouseY);
+    ctx.lineTo(mouseX + 8, mouseY);
+    ctx.moveTo(mouseX, mouseY - 8);
+    ctx.lineTo(mouseX, mouseY + 8);
+    ctx.stroke();
+}
+
+// ARROWS
+function updateArrows() {
+    arrows.forEach((arrow, i) => {
+
+        arrow.vy += 0.2;
+
+        arrow.x += arrow.vx;
+        arrow.y += arrow.vy;
+
+        ctx.fillStyle = "brown";
+        ctx.fillRect(arrow.x, arrow.y, 20, 3);
+
+        const dx = arrow.x - target.x;
+        const dy = arrow.y - target.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+
+        if (dist <= 15) {
+            score++;
+            document.getElementById("score").innerText = "Score: " + score;
+            arrows.splice(i, 1);
+
+            if (score >= 5) {
+                document.getElementById("winScreen").style.display = "block";
+            }
+        }
+
+        if (arrow.x > canvas.width || arrow.y > canvas.height) {
+            arrows.splice(i, 1);
+        }
+    });
+}
+
+// POWER
+function updatePower() {
+    if (aiming && pullPower < 1) {
+        pullPower += 0.02;
+    }
+}
+
+// RESTART
+function restartGame() {
+    score = 0;
+    arrows = [];
+    document.getElementById("score").innerText = "Score: 0";
+    document.getElementById("winScreen").style.display = "none";
+}
+
+// LOOP
+function loop() {
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (gameStarted && !gamePaused) {
+        updateTarget();
+        drawTarget();
+        drawBow();
+        drawCrosshair();
+        updatePower();
+        updateArrows();
+    }
+
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+</script>
+
+</body>
+</html>
