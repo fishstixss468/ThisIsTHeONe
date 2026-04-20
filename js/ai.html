@@ -20,18 +20,9 @@ canvas {
 #score {
     position: absolute;
     top: 10px;
-    left: 120px;
+    left: 20px;
     font-size: 20px;
     font-weight: bold;
-    display: none;
-}
-
-#homeBtn {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 8px 12px;
-    cursor: pointer;
     display: none;
 }
 
@@ -68,17 +59,13 @@ button {
 
 <body>
 
-<!-- ✅ HOME BUTTON FIXED -->
-<a href="fromScratch.html">
-    <button id="homeBtn">Home</button>
-</a>
-
 <button id="pauseBtn" onclick="pauseGame()">Pause</button>
 
 <div id="score">Score: 0</div>
 
 <div id="startScreen">
     <h2>Hit all targets to advance rounds!</h2>
+    <p><strong>To go back to the home page click the back arrow at the top of the screen.</strong></p>
     <button onclick="startGame()">Start</button>
 </div>
 
@@ -126,7 +113,6 @@ function startGame() {
 
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("score").style.display = "block";
-    document.getElementById("homeBtn").style.display = "block";
     document.getElementById("pauseBtn").style.display = "block";
 }
 
