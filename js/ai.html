@@ -68,7 +68,11 @@ button {
 
 <body>
 
-<button id="homeBtn" onclick="goHome()">Home</button>
+<!-- ✅ HOME BUTTON FIXED -->
+<a href="fromScratch.html">
+    <button id="homeBtn">Home</button>
+</a>
+
 <button id="pauseBtn" onclick="pauseGame()">Pause</button>
 
 <div id="score">Score: 0</div>
@@ -106,7 +110,6 @@ let mouseY = canvas.height / 2;
 let aiming = false;
 let pullPower = 0;
 let arrows = [];
-let score = 0;
 
 let round = 1;
 let targets = [];
@@ -116,11 +119,9 @@ const bow = {
     y: canvas.height / 2
 };
 
-// START GAME
 function startGame() {
     gameStarted = true;
     round = 1;
-    score = 0;
     createTargets();
 
     document.getElementById("startScreen").style.display = "none";
@@ -129,12 +130,6 @@ function startGame() {
     document.getElementById("pauseBtn").style.display = "block";
 }
 
-// HOME BUTTON (JUST CHANGE THIS LINK)
-function goHome() {
-    window.location.assign="fromScratch.html";
-}
-
-// CREATE TARGETS
 function createTargets() {
     targets = [];
     for (let i = 0; i < round; i++) {
@@ -148,19 +143,15 @@ function createTargets() {
     }
 }
 
-// NEXT ROUND
 function nextRound() {
     document.getElementById("roundScreen").style.display = "none";
-    score = 0;
     createTargets();
 }
 
-// PAUSE
 function pauseGame() {
     gamePaused = !gamePaused;
 }
 
-// MOUSE
 canvas.addEventListener("mousedown", () => {
     if (!gameStarted || gamePaused) return;
     aiming = true;
@@ -180,7 +171,6 @@ canvas.addEventListener("mousemove", (e) => {
     mouseY = e.clientY;
 });
 
-// SHOOT
 function shootArrow() {
     const angle = Math.atan2(mouseY - bow.y, mouseX - bow.x);
 
@@ -192,7 +182,6 @@ function shootArrow() {
     });
 }
 
-// DRAW BOW + STRING
 function drawBow() {
     const angle = Math.atan2(mouseY - bow.y, mouseX - bow.x);
 
@@ -200,14 +189,12 @@ function drawBow() {
     ctx.translate(bow.x, bow.y);
     ctx.rotate(angle);
 
-    // Bow
     ctx.beginPath();
     ctx.arc(0, 0, 100, -Math.PI/2, Math.PI/2);
     ctx.strokeStyle = "brown";
     ctx.lineWidth = 5;
     ctx.stroke();
 
-    // String (pull back effect)
     const pull = pullPower * 40;
 
     ctx.beginPath();
@@ -217,10 +204,22 @@ function drawBow() {
     ctx.strokeStyle = "black";
     ctx.stroke();
 
+    if (aiming) {
+        ctx.beginPath();
+        ctx.moveTo(-pull, 0);
+        ctx.lineTo(40 - pull, 0);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(40 - pull, 0);
+        ctx.lineTo(30 - pull, -5);
+        ctx.lineTo(30 - pull, 5);
+        ctx.fill();
+    }
+
     ctx.restore();
 }
 
-// DRAW TARGETS
 function drawTargets() {
     targets.forEach(t => {
         const colors = ["white", "blue", "yellow", "red"];
@@ -235,7 +234,6 @@ function drawTargets() {
     });
 }
 
-// MOVE TARGETS
 function updateTargets() {
     targets.forEach(t => {
         t.x += t.dx;
@@ -246,7 +244,6 @@ function updateTargets() {
     });
 }
 
-// CROSSHAIR
 function drawCrosshair() {
     ctx.beginPath();
     ctx.moveTo(mouseX - 8, mouseY);
@@ -256,7 +253,6 @@ function drawCrosshair() {
     ctx.stroke();
 }
 
-// ARROWS + HIT DETECTION
 function updateArrows() {
     arrows.forEach((arrow, i) => {
         arrow.vy += 0.2;
@@ -288,19 +284,16 @@ function updateArrows() {
     });
 }
 
-// POWER
 function updatePower() {
     if (aiming && pullPower < 1) pullPower += 0.02;
 }
 
-// RESTART
 function restartGame() {
     round = 1;
     createTargets();
     document.getElementById("winScreen").style.display = "none";
 }
 
-// LOOP
 function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
