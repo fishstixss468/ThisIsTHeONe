@@ -5,118 +5,92 @@
 <title>Archery Game</title>
 
 <style>
-    body {
-        margin: 0;
-        overflow: hidden;
-        background: linear-gradient(#87ceeb, #dff6ff);
-        font-family: Arial;
-    }
+body {
+    margin: 0;
+    overflow: hidden;
+    background: linear-gradient(#87ceeb, #dff6ff);
+    font-family: Arial;
+}
 
-    canvas {
-        display: block;
-        cursor: crosshair;
-    }
+canvas {
+    display: block;
+    cursor: crosshair;
+}
 
-    /* SCORE */
-    #score {
-        position: absolute;
-        top: 10px;
-        left: 120px;
-        font-size: 20px;
-        font-weight: bold;
-        display: none;
-    }
+#score {
+    position: absolute;
+    top: 10px;
+    left: 120px;
+    font-size: 20px;
+    font-weight: bold;
+    display: none;
+}
 
-    /* HOME BUTTON */
-    #homeBtn {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        padding: 8px 12px;
-        font-size: 14px;
-        cursor: pointer;
-        display: none;
-    }
+#homeBtn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: none;
+}
 
-    /* PAUSE BUTTON */
-    #pauseBtn {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        padding: 8px 12px;
-        font-size: 14px;
-        cursor: pointer;
-        display: none;
-    }
+#pauseBtn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    display: none;
+}
 
-    /* START SCREEN */
-    #startScreen, #winScreen {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 30px;
-        border-radius: 10px;
-        text-align: center;
-        box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    }
+#startScreen, #winScreen, #roundScreen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+}
 
-    #winScreen {
-        display: none;
-    }
+#winScreen, #roundScreen {
+    display: none;
+}
 
-    /* PAUSE OVERLAY */
-    #pauseScreen {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(255,255,255,0.95);
-        padding: 30px;
-        border-radius: 10px;
-        text-align: center;
-        display: none;
-        box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    }
-
-    button {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        margin-top: 15px;
-    }
+button {
+    padding: 10px 20px;
+    margin-top: 15px;
+}
 </style>
 </head>
 
 <body>
 
-<!-- UI -->
 <button id="homeBtn" onclick="goHome()">Home</button>
 <button id="pauseBtn" onclick="pauseGame()">Pause</button>
 
 <div id="score">Score: 0</div>
 
 <div id="startScreen">
-    <h2>The goal is to hit the bullseye 5 times!</h2>
+    <h2>Hit all targets to advance rounds!</h2>
     <button onclick="startGame()">Start</button>
 </div>
 
-<div id="winScreen">
-    <h1>You Won!</h1>
-    <button onclick="restartGame()">Play Again</button>
+<div id="roundScreen">
+    <h2>Ready for the Next Round?</h2>
+    <button onclick="nextRound()">Begin</button>
 </div>
 
-<!-- PAUSE SCREEN -->
-<div id="pauseScreen">
-    <h1>Game Paused</h1>
-    <button onclick="resumeGame()">Resume</button>
+<div id="winScreen">
+    <h1>You Won All 5 Rounds!</h1>
+    <button onclick="restartGame()">Play Again</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
 
 <script>
-
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
@@ -134,22 +108,20 @@ let pullPower = 0;
 let arrows = [];
 let score = 0;
 
+let round = 1;
+let targets = [];
+
 const bow = {
     x: 150,
     y: canvas.height / 2
 };
 
-const target = {
-    x: canvas.width * 0.75,
-    y: canvas.height * 0.5,
-    radius: 60,
-    dx: 2 + Math.random() * 2,
-    dy: 1.5 + Math.random() * 2
-};
-
-// START
+// START GAME
 function startGame() {
     gameStarted = true;
+    round = 1;
+    score = 0;
+    createTargets();
 
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("score").style.display = "block";
@@ -157,21 +129,35 @@ function startGame() {
     document.getElementById("pauseBtn").style.display = "block";
 }
 
-// HOME BUTTON
+// HOME BUTTON (JUST CHANGE THIS LINK)
 function goHome() {
-    window.location.href="../fromScratch.html"; // change if needed
+    window.location.assign="fromScratch.html";
+}
+
+// CREATE TARGETS
+function createTargets() {
+    targets = [];
+    for (let i = 0; i < round; i++) {
+        targets.push({
+            x: canvas.width * (0.6 + Math.random() * 0.3),
+            y: Math.random() * canvas.height,
+            radius: 60,
+            dx: 2 + Math.random() * 2,
+            dy: 1.5 + Math.random() * 2
+        });
+    }
+}
+
+// NEXT ROUND
+function nextRound() {
+    document.getElementById("roundScreen").style.display = "none";
+    score = 0;
+    createTargets();
 }
 
 // PAUSE
 function pauseGame() {
-    gamePaused = true;
-    document.getElementById("pauseScreen").style.display = "block";
-}
-
-// RESUME
-function resumeGame() {
-    gamePaused = false;
-    document.getElementById("pauseScreen").style.display = "none";
+    gamePaused = !gamePaused;
 }
 
 // MOUSE
@@ -206,7 +192,7 @@ function shootArrow() {
     });
 }
 
-// BOW
+// DRAW BOW + STRING
 function drawBow() {
     const angle = Math.atan2(mouseY - bow.y, mouseX - bow.x);
 
@@ -214,40 +200,50 @@ function drawBow() {
     ctx.translate(bow.x, bow.y);
     ctx.rotate(angle);
 
+    // Bow
     ctx.beginPath();
     ctx.arc(0, 0, 100, -Math.PI/2, Math.PI/2);
     ctx.strokeStyle = "brown";
     ctx.lineWidth = 5;
     ctx.stroke();
 
+    // String (pull back effect)
+    const pull = pullPower * 40;
+
+    ctx.beginPath();
+    ctx.moveTo(0, -100);
+    ctx.lineTo(-pull, 0);
+    ctx.lineTo(0, 100);
+    ctx.strokeStyle = "black";
+    ctx.stroke();
+
     ctx.restore();
 }
 
-// TARGET
-function drawTarget() {
-    const colors = ["white", "blue", "yellow", "red"];
-    const radii = [60, 45, 30, 15];
+// DRAW TARGETS
+function drawTargets() {
+    targets.forEach(t => {
+        const colors = ["white", "blue", "yellow", "red"];
+        const radii = [60, 45, 30, 15];
 
-    for (let i = 0; i < colors.length; i++) {
-        ctx.beginPath();
-        ctx.arc(target.x, target.y, radii[i], 0, Math.PI * 2);
-        ctx.fillStyle = colors[i];
-        ctx.fill();
-    }
+        for (let i = 0; i < colors.length; i++) {
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, radii[i], 0, Math.PI * 2);
+            ctx.fillStyle = colors[i];
+            ctx.fill();
+        }
+    });
 }
 
-// MOVE TARGET
-function updateTarget() {
-    target.x += target.dx;
-    target.y += target.dy;
+// MOVE TARGETS
+function updateTargets() {
+    targets.forEach(t => {
+        t.x += t.dx;
+        t.y += t.dy;
 
-    if (target.x + target.radius > canvas.width || target.x - target.radius < canvas.width * 0.5) {
-        target.dx *= -1;
-    }
-
-    if (target.y + target.radius > canvas.height || target.y - target.radius < 0) {
-        target.dy *= -1;
-    }
+        if (t.x > canvas.width || t.x < canvas.width * 0.5) t.dx *= -1;
+        if (t.y > canvas.height || t.y < 0) t.dy *= -1;
+    });
 }
 
 // CROSSHAIR
@@ -260,61 +256,57 @@ function drawCrosshair() {
     ctx.stroke();
 }
 
-// ARROWS
+// ARROWS + HIT DETECTION
 function updateArrows() {
     arrows.forEach((arrow, i) => {
-
         arrow.vy += 0.2;
-
         arrow.x += arrow.vx;
         arrow.y += arrow.vy;
 
-        ctx.fillStyle = "brown";
         ctx.fillRect(arrow.x, arrow.y, 20, 3);
 
-        const dx = arrow.x - target.x;
-        const dy = arrow.y - target.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
+        targets.forEach((t, ti) => {
+            const dx = arrow.x - t.x;
+            const dy = arrow.y - t.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
 
-        if (dist <= 15) {
-            score++;
-            document.getElementById("score").innerText = "Score: " + score;
-            arrows.splice(i, 1);
+            if (dist <= 15) {
+                targets.splice(ti, 1);
+                arrows.splice(i, 1);
 
-            if (score >= 5) {
-                document.getElementById("winScreen").style.display = "block";
+                if (targets.length === 0) {
+                    round++;
+
+                    if (round > 5) {
+                        document.getElementById("winScreen").style.display = "block";
+                    } else {
+                        document.getElementById("roundScreen").style.display = "block";
+                    }
+                }
             }
-        }
-
-        if (arrow.x > canvas.width || arrow.y > canvas.height) {
-            arrows.splice(i, 1);
-        }
+        });
     });
 }
 
 // POWER
 function updatePower() {
-    if (aiming && pullPower < 1) {
-        pullPower += 0.02;
-    }
+    if (aiming && pullPower < 1) pullPower += 0.02;
 }
 
 // RESTART
 function restartGame() {
-    score = 0;
-    arrows = [];
-    document.getElementById("score").innerText = "Score: 0";
+    round = 1;
+    createTargets();
     document.getElementById("winScreen").style.display = "none";
 }
 
 // LOOP
 function loop() {
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if (gameStarted && !gamePaused) {
-        updateTarget();
-        drawTarget();
+        updateTargets();
+        drawTargets();
         drawBow();
         drawCrosshair();
         updatePower();
@@ -325,7 +317,6 @@ function loop() {
 }
 
 loop();
-
 </script>
 
 </body>
